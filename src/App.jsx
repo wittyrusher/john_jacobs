@@ -64,13 +64,23 @@ export default function App() {
 
   const [currentIndex, setCurrentIndex] = useState(0);
   const [isScrolled, setIsScrolled] = useState(false);
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [windowWidth, setWindowWidth] = useState(typeof window !== 'undefined' ? window.innerWidth : 1200);
 
   useEffect(() => {
     const handleScroll = () => {
       setIsScrolled(window.scrollY > 50);
     };
+    const handleResize = () => {
+      setWindowWidth(window.innerWidth);
+    };
+    
     window.addEventListener('scroll', handleScroll);
-    return () => window.removeEventListener('scroll', handleScroll);
+    window.addEventListener('resize', handleResize);
+    return () => {
+      window.removeEventListener('scroll', handleScroll);
+      window.removeEventListener('resize', handleResize);
+    };
   }, []);
 
   const nextProduct = () => setCurrentIndex((prev) => (prev + 1) % products.length);
@@ -78,7 +88,11 @@ export default function App() {
 
   const scrollToSection = (sectionId) => {
     document.getElementById(sectionId)?.scrollIntoView({ behavior: 'smooth' });
+    setIsMobileMenuOpen(false);
   };
+
+  const isMobile = windowWidth <= 768;
+  const isTablet = windowWidth <= 1024 && windowWidth > 768;
 
   return (
     <div style={{ 
@@ -107,10 +121,10 @@ export default function App() {
           display: "flex",
           justifyContent: "space-between",
           alignItems: "center",
-          padding: "20px 40px"
+          padding: isMobile ? "15px 20px" : "20px 40px"
         }}>
           <h1 style={{
-            fontSize: "32px",
+            fontSize: isMobile ? "24px" : "32px",
             fontWeight: "700",
             background: "linear-gradient(135deg, #00f5ff, #0099ff)",
             backgroundClip: "text",
@@ -120,60 +134,129 @@ export default function App() {
           }}>
             JOHN JACOBS
           </h1>
-          <nav>
-            <ul style={{
-              listStyle: "none",
-              display: "flex",
-              gap: "40px",
-              margin: 0,
-              padding: 0
-            }}>
-              {[
-                { name: "Home", section: "home" },
-                { name: "Collection", section: "collection" },
-                { name: "Technology", section: "technology" },
-                { name: "About", section: "about" },
-                { name: "Contact", section: "contact" }
-              ].map((item) => (
-                <li key={item.name}>
-                  <button 
-                    onClick={() => scrollToSection(item.section)}
-                    style={{
-                      color: "#ffffff",
-                      background: "none",
-                      border: "none",
-                      cursor: "pointer",
-                      fontWeight: "500",
-                      fontSize: "16px",
-                      transition: "all 0.3s ease",
-                      position: "relative",
-                      padding: "10px 0"
-                    }}
-                    onMouseEnter={(e) => {
-                      e.target.style.color = "#00f5ff";
-                    }}
-                    onMouseLeave={(e) => {
-                      e.target.style.color = "#ffffff";
-                    }}>
-                    {item.name}
-                  </button>
-                </li>
-              ))}
-            </ul>
-          </nav>
+          
+          {/* Mobile Menu Button */}
+          {isMobile && (
+            <button 
+              onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+              style={{
+                background: "none",
+                border: "none",
+                color: "#ffffff",
+                fontSize: "24px",
+                cursor: "pointer",
+                padding: "5px"
+              }}>
+              {isMobileMenuOpen ? "✕" : "☰"}
+            </button>
+          )}
+          
+          {/* Desktop Navigation */}
+          {!isMobile && (
+            <nav>
+              <ul style={{
+                listStyle: "none",
+                display: "flex",
+                gap: isTablet ? "30px" : "40px",
+                margin: 0,
+                padding: 0
+              }}>
+                {[
+                  { name: "Home", section: "home" },
+                  { name: "Collection", section: "collection" },
+                  { name: "Technology", section: "technology" },
+                  { name: "About", section: "about" },
+                  { name: "Contact", section: "contact" }
+                ].map((item) => (
+                  <li key={item.name}>
+                    <button 
+                      onClick={() => scrollToSection(item.section)}
+                      style={{
+                        color: "#ffffff",
+                        background: "none",
+                        border: "none",
+                        cursor: "pointer",
+                        fontWeight: "500",
+                        fontSize: "16px",
+                        transition: "all 0.3s ease",
+                        position: "relative",
+                        padding: "10px 0"
+                      }}
+                      onMouseEnter={(e) => {
+                        e.target.style.color = "#00f5ff";
+                      }}
+                      onMouseLeave={(e) => {
+                        e.target.style.color = "#ffffff";
+                      }}>
+                      {item.name}
+                    </button>
+                  </li>
+                ))}
+              </ul>
+            </nav>
+          )}
         </div>
+        
+        {/* Mobile Navigation Menu */}
+        {isMobile && isMobileMenuOpen && (
+          <div style={{
+            position: "absolute",
+            top: "100%",
+            left: 0,
+            right: 0,
+            background: "rgba(10, 10, 10, 0.98)",
+            backdropFilter: "blur(20px)",
+            borderBottom: "1px solid rgba(255, 255, 255, 0.1)",
+            padding: "20px"
+          }}>
+            {[
+              { name: "Home", section: "home" },
+              { name: "Collection", section: "collection" },
+              { name: "Technology", section: "technology" },
+              { name: "About", section: "about" },
+              { name: "Contact", section: "contact" }
+            ].map((item) => (
+              <button 
+                key={item.name}
+                onClick={() => scrollToSection(item.section)}
+                style={{
+                  display: "block",
+                  width: "100%",
+                  color: "#ffffff",
+                  background: "none",
+                  border: "none",
+                  cursor: "pointer",
+                  fontWeight: "500",
+                  fontSize: "18px",
+                  padding: "15px 0",
+                  textAlign: "left",
+                  borderBottom: "1px solid rgba(255, 255, 255, 0.1)",
+                  transition: "color 0.3s ease"
+                }}
+                onMouseEnter={(e) => {
+                  e.target.style.color = "#00f5ff";
+                }}
+                onMouseLeave={(e) => {
+                  e.target.style.color = "#ffffff";
+                }}>
+                {item.name}
+              </button>
+            ))}
+          </div>
+        )}
       </header>
 
       {/* Hero Section */}
       <section id="home" style={{
-        height: "100vh",
+        minHeight: "100vh",
         background: "linear-gradient(135deg, #0a0a0a 0%, #1a1a2e 50%, #16213e 100%)",
         display: "flex",
         alignItems: "center",
         justifyContent: "center",
         textAlign: "center",
         position: "relative",
-        overflow: "hidden"
+        overflow: "hidden",
+        padding: isMobile ? "80px 20px 40px" : "0 40px"
       }}>
         <div style={{
           position: "absolute",
@@ -186,43 +269,52 @@ export default function App() {
         
         <div style={{
           zIndex: 2,
-          maxWidth: "800px",
-          padding: "0 40px"
+          maxWidth: isMobile ? "100%" : "800px",
+          padding: 0
         }}>
           <h2 style={{
-            fontSize: "72px",
+            fontSize: isMobile ? "40px" : isTablet ? "56px" : "72px",
             fontWeight: "800",
             marginBottom: "24px",
             background: "linear-gradient(135deg, #ffffff, #00f5ff)",
             backgroundClip: "text",
             WebkitBackgroundClip: "text",
             color: "transparent",
-            textShadow: "0 4px 20px rgba(0, 245, 255, 0.3)"
+            textShadow: "0 4px 20px rgba(0, 245, 255, 0.3)",
+            lineHeight: "1.1"
           }}>
             Vision Redefined
           </h2>
           <p style={{
-            fontSize: "24px",
+            fontSize: isMobile ? "18px" : "24px",
             marginBottom: "40px",
             color: "rgba(255, 255, 255, 0.8)",
-            fontWeight: "300"
+            fontWeight: "300",
+            lineHeight: "1.5"
           }}>
             Experience the future of eyewear with precision-engineered frames and cutting-edge lens technology
           </p>
-          <div style={{ display: "flex", gap: "20px", justifyContent: "center" }}>
+          <div style={{ 
+            display: "flex", 
+            gap: isMobile ? "15px" : "20px", 
+            justifyContent: "center",
+            flexDirection: isMobile ? "column" : "row",
+            alignItems: "center"
+          }}>
             <button 
               onClick={() => scrollToSection('collection')}
               style={{
-                padding: "16px 40px",
+                padding: isMobile ? "14px 30px" : "16px 40px",
                 background: "linear-gradient(135deg, #00f5ff, #0099ff)",
                 color: "#0a0a0a",
                 border: "none",
                 borderRadius: "50px",
-                fontSize: "18px",
+                fontSize: isMobile ? "16px" : "18px",
                 fontWeight: "600",
                 cursor: "pointer",
                 transition: "all 0.3s ease",
-                boxShadow: "0 8px 32px rgba(0, 245, 255, 0.3)"
+                boxShadow: "0 8px 32px rgba(0, 245, 255, 0.3)",
+                width: isMobile ? "100%" : "auto"
               }}
               onMouseEnter={(e) => {
                 e.target.style.transform = "translateY(-2px)";
@@ -237,15 +329,16 @@ export default function App() {
             <button 
               onClick={() => scrollToSection('about')}
               style={{
-                padding: "16px 40px",
+                padding: isMobile ? "14px 30px" : "16px 40px",
                 background: "transparent",
                 color: "#ffffff",
                 border: "2px solid rgba(255, 255, 255, 0.3)",
                 borderRadius: "50px",
-                fontSize: "18px",
+                fontSize: isMobile ? "16px" : "18px",
                 fontWeight: "600",
                 cursor: "pointer",
-                transition: "all 0.3s ease"
+                transition: "all 0.3s ease",
+                width: isMobile ? "100%" : "auto"
               }}
               onMouseEnter={(e) => {
                 e.target.style.borderColor = "#00f5ff";
@@ -263,7 +356,7 @@ export default function App() {
 
       {/* Features Section */}
       <section id="technology" style={{
-        padding: "120px 40px",
+        padding: isMobile ? "60px 20px" : isTablet ? "80px 30px" : "120px 40px",
         backgroundColor: "#111111",
         borderTop: "1px solid rgba(255, 255, 255, 0.1)"
       }}>
@@ -273,21 +366,21 @@ export default function App() {
           textAlign: "center"
         }}>
           <h2 style={{
-            fontSize: "48px",
+            fontSize: isMobile ? "32px" : isTablet ? "40px" : "48px",
             fontWeight: "700",
-            marginBottom: "60px",
+            marginBottom: isMobile ? "40px" : "60px",
             color: "#ffffff"
           }}>
             Crafted to Perfection
           </h2>
           <div style={{
             display: "grid",
-            gridTemplateColumns: "repeat(auto-fit, minmax(300px, 1fr))",
-            gap: "40px"
+            gridTemplateColumns: isMobile ? "1fr" : isTablet ? "repeat(2, 1fr)" : "repeat(auto-fit, minmax(300px, 1fr))",
+            gap: isMobile ? "30px" : "40px"
           }}>
             {features.map((feature, index) => (
               <div key={index} style={{
-                padding: "40px",
+                padding: isMobile ? "30px 25px" : "40px",
                 background: "linear-gradient(135deg, rgba(255, 255, 255, 0.05), rgba(255, 255, 255, 0.02))",
                 borderRadius: "20px",
                 border: "1px solid rgba(255, 255, 255, 0.1)",
@@ -304,13 +397,13 @@ export default function App() {
                 e.target.style.borderColor = "rgba(255, 255, 255, 0.1)";
               }}>
                 <div style={{
-                  fontSize: "48px",
+                  fontSize: isMobile ? "40px" : "48px",
                   marginBottom: "20px"
                 }}>
                   {feature.icon}
                 </div>
                 <h3 style={{
-                  fontSize: "24px",
+                  fontSize: isMobile ? "20px" : "24px",
                   fontWeight: "600",
                   marginBottom: "16px",
                   color: "#ffffff"
@@ -319,7 +412,7 @@ export default function App() {
                 </h3>
                 <p style={{
                   color: "rgba(255, 255, 255, 0.7)",
-                  fontSize: "16px",
+                  fontSize: isMobile ? "14px" : "16px",
                   lineHeight: "1.6"
                 }}>
                   {feature.description}
@@ -332,7 +425,7 @@ export default function App() {
 
       {/* Products Carousel */}
       <section id="collection" style={{
-        padding: "120px 40px",
+        padding: isMobile ? "60px 20px" : isTablet ? "80px 30px" : "120px 40px",
         backgroundColor: "#0a0a0a"
       }}>
         <div style={{
@@ -341,9 +434,9 @@ export default function App() {
           textAlign: "center"
         }}>
           <h2 style={{
-            fontSize: "48px",
+            fontSize: isMobile ? "32px" : isTablet ? "40px" : "48px",
             fontWeight: "700",
-            marginBottom: "60px",
+            marginBottom: isMobile ? "40px" : "60px",
             color: "#ffffff"
           }}>
             Featured Collection
@@ -352,35 +445,39 @@ export default function App() {
             display: "flex",
             alignItems: "center",
             justifyContent: "center",
-            gap: "40px"
+            gap: isMobile ? "20px" : "40px",
+            flexDirection: isMobile ? "column" : "row"
           }}>
-            <button 
-              onClick={prevProduct}
-              style={{
-                background: "linear-gradient(135deg, #00f5ff, #0099ff)",
-                border: "none",
-                color: "#0a0a0a",
-                fontSize: "24px",
-                padding: "16px 20px",
-                borderRadius: "50%",
-                cursor: "pointer",
-                transition: "all 0.3s ease",
-                boxShadow: "0 8px 32px rgba(0, 245, 255, 0.3)"
-              }}
-              onMouseEnter={(e) => {
-                e.target.style.transform = "scale(1.1)";
-              }}
-              onMouseLeave={(e) => {
-                e.target.style.transform = "scale(1)";
-              }}>
-              ❮
-            </button>
+            {!isMobile && (
+              <button 
+                onClick={prevProduct}
+                style={{
+                  background: "linear-gradient(135deg, #00f5ff, #0099ff)",
+                  border: "none",
+                  color: "#0a0a0a",
+                  fontSize: "24px",
+                  padding: "16px 20px",
+                  borderRadius: "50%",
+                  cursor: "pointer",
+                  transition: "all 0.3s ease",
+                  boxShadow: "0 8px 32px rgba(0, 245, 255, 0.3)"
+                }}
+                onMouseEnter={(e) => {
+                  e.target.style.transform = "scale(1.1)";
+                }}
+                onMouseLeave={(e) => {
+                  e.target.style.transform = "scale(1)";
+                }}>
+                ❮
+              </button>
+            )}
             
             <div style={{
               background: "linear-gradient(135deg, rgba(255, 255, 255, 0.1), rgba(255, 255, 255, 0.05))",
               borderRadius: "24px",
-              padding: "40px",
-              width: "400px",
+              padding: isMobile ? "30px 25px" : "40px",
+              width: isMobile ? "100%" : isTablet ? "350px" : "400px",
+              maxWidth: isMobile ? "350px" : "none",
               border: "1px solid rgba(255, 255, 255, 0.2)",
               backdropFilter: "blur(20px)",
               boxShadow: "0 20px 60px rgba(0, 0, 0, 0.3)"
@@ -390,7 +487,7 @@ export default function App() {
                 alt={products[currentIndex].name}
                 style={{
                   width: "100%",
-                  height: "250px",
+                  height: isMobile ? "200px" : "250px",
                   objectFit: "cover",
                   borderRadius: "16px",
                   marginBottom: "24px"
@@ -409,7 +506,7 @@ export default function App() {
                 {products[currentIndex].category}
               </div>
               <h3 style={{
-                fontSize: "28px",
+                fontSize: isMobile ? "22px" : "28px",
                 fontWeight: "600",
                 marginBottom: "12px",
                 color: "#ffffff"
@@ -417,7 +514,7 @@ export default function App() {
                 {products[currentIndex].name}
               </h3>
               <p style={{
-                fontSize: "24px",
+                fontSize: isMobile ? "20px" : "24px",
                 fontWeight: "700",
                 color: "#00f5ff",
                 marginBottom: "24px"
@@ -425,7 +522,7 @@ export default function App() {
                 {products[currentIndex].price}
               </p>
               <button style={{
-                padding: "14px 32px",
+                padding: isMobile ? "12px 28px" : "14px 32px",
                 background: "linear-gradient(135deg, #00f5ff, #0099ff)",
                 color: "#0a0a0a",
                 border: "none",
@@ -448,34 +545,77 @@ export default function App() {
               </button>
             </div>
             
-            <button 
-              onClick={nextProduct}
-              style={{
-                background: "linear-gradient(135deg, #00f5ff, #0099ff)",
-                border: "none",
-                color: "#0a0a0a",
-                fontSize: "24px",
-                padding: "16px 20px",
-                borderRadius: "50%",
-                cursor: "pointer",
-                transition: "all 0.3s ease",
-                boxShadow: "0 8px 32px rgba(0, 245, 255, 0.3)"
-              }}
-              onMouseEnter={(e) => {
-                e.target.style.transform = "scale(1.1)";
-              }}
-              onMouseLeave={(e) => {
-                e.target.style.transform = "scale(1)";
-              }}>
-              ❯
-            </button>
+            {!isMobile && (
+              <button 
+                onClick={nextProduct}
+                style={{
+                  background: "linear-gradient(135deg, #00f5ff, #0099ff)",
+                  border: "none",
+                  color: "#0a0a0a",
+                  fontSize: "24px",
+                  padding: "16px 20px",
+                  borderRadius: "50%",
+                  cursor: "pointer",
+                  transition: "all 0.3s ease",
+                  boxShadow: "0 8px 32px rgba(0, 245, 255, 0.3)"
+                }}
+                onMouseEnter={(e) => {
+                  e.target.style.transform = "scale(1.1)";
+                }}
+                onMouseLeave={(e) => {
+                  e.target.style.transform = "scale(1)";
+                }}>
+                ❯
+              </button>
+            )}
           </div>
+          
+          {/* Mobile Navigation Buttons */}
+          {isMobile && (
+            <div style={{
+              display: "flex",
+              justifyContent: "center",
+              gap: "20px",
+              marginTop: "30px"
+            }}>
+              <button 
+                onClick={prevProduct}
+                style={{
+                  background: "linear-gradient(135deg, #00f5ff, #0099ff)",
+                  border: "none",
+                  color: "#0a0a0a",
+                  fontSize: "20px",
+                  padding: "12px 16px",
+                  borderRadius: "50%",
+                  cursor: "pointer",
+                  transition: "all 0.3s ease",
+                  boxShadow: "0 8px 32px rgba(0, 245, 255, 0.3)"
+                }}>
+                ❮
+              </button>
+              <button 
+                onClick={nextProduct}
+                style={{
+                  background: "linear-gradient(135deg, #00f5ff, #0099ff)",
+                  border: "none",
+                  color: "#0a0a0a",
+                  fontSize: "20px",
+                  padding: "12px 16px",
+                  borderRadius: "50%",
+                  cursor: "pointer",
+                  transition: "all 0.3s ease",
+                  boxShadow: "0 8px 32px rgba(0, 245, 255, 0.3)"
+                }}>
+                ❯
+              </button>
+            </div>
+          )}
         </div>
       </section>
 
       {/* About/Build Section */}
       <section id="about" style={{
-        padding: "120px 40px",
+        padding: isMobile ? "60px 20px" : isTablet ? "80px 30px" : "120px 40px",
         backgroundColor: "#111111",
         borderTop: "1px solid rgba(255, 255, 255, 0.1)"
       }}>
@@ -485,13 +625,13 @@ export default function App() {
         }}>
           <div style={{
             display: "grid",
-            gridTemplateColumns: "1fr 1fr",
-            gap: "80px",
+            gridTemplateColumns: isMobile || isTablet ? "1fr" : "1fr 1fr",
+            gap: isMobile ? "50px" : "80px",
             alignItems: "center"
           }}>
             <div>
               <h2 style={{
-                fontSize: "48px",
+                fontSize: isMobile ? "32px" : isTablet ? "40px" : "48px",
                 fontWeight: "700",
                 marginBottom: "32px",
                 color: "#ffffff"
@@ -499,7 +639,7 @@ export default function App() {
                 Built for Excellence
               </h2>
               <p style={{
-                fontSize: "18px",
+                fontSize: isMobile ? "16px" : "18px",
                 color: "rgba(255, 255, 255, 0.8)",
                 marginBottom: "32px",
                 lineHeight: "1.8"
@@ -527,13 +667,13 @@ export default function App() {
                   }}>
                     <span style={{
                       color: "rgba(255, 255, 255, 0.7)",
-                      fontSize: "16px"
+                      fontSize: isMobile ? "14px" : "16px"
                     }}>
                       {stat.label}
                     </span>
                     <span style={{
                       color: "#00f5ff",
-                      fontSize: "16px",
+                      fontSize: isMobile ? "14px" : "16px",
                       fontWeight: "600"
                     }}>
                       {stat.value}
@@ -546,18 +686,18 @@ export default function App() {
             <div style={{
               background: "linear-gradient(135deg, rgba(0, 245, 255, 0.1), rgba(0, 153, 255, 0.05))",
               borderRadius: "24px",
-              padding: "60px",
+              padding: isMobile ? "40px 30px" : "60px",
               border: "1px solid rgba(0, 245, 255, 0.2)",
               textAlign: "center"
             }}>
               <div style={{
-                fontSize: "72px",
+                fontSize: isMobile ? "60px" : "72px",
                 marginBottom: "24px"
               }}>
                 🏭
               </div>
               <h3 style={{
-                fontSize: "24px",
+                fontSize: isMobile ? "20px" : "24px",
                 fontWeight: "600",
                 marginBottom: "16px",
                 color: "#ffffff"
@@ -566,7 +706,8 @@ export default function App() {
               </h3>
               <p style={{
                 color: "rgba(255, 255, 255, 0.7)",
-                lineHeight: "1.6"
+                lineHeight: "1.6",
+                fontSize: isMobile ? "14px" : "16px"
               }}>
                 Our cutting-edge facilities combine traditional craftsmanship with 
                 modern technology to create eyewear that sets industry standards.
@@ -578,7 +719,7 @@ export default function App() {
 
       {/* Testimonials */}
       <section style={{
-        padding: "120px 40px",
+        padding: isMobile ? "60px 20px" : isTablet ? "80px 30px" : "120px 40px",
         backgroundColor: "#0a0a0a"
       }}>
         <div style={{
@@ -587,17 +728,17 @@ export default function App() {
           textAlign: "center"
         }}>
           <h2 style={{
-            fontSize: "48px",
+            fontSize: isMobile ? "32px" : isTablet ? "40px" : "48px",
             fontWeight: "700",
-            marginBottom: "60px",
+            marginBottom: isMobile ? "40px" : "60px",
             color: "#ffffff"
           }}>
             What Our Customers Say
           </h2>
           <div style={{
             display: "grid",
-            gridTemplateColumns: "repeat(auto-fit, minmax(350px, 1fr))",
-            gap: "40px"
+            gridTemplateColumns: isMobile ? "1fr" : isTablet ? "repeat(2, 1fr)" : "repeat(auto-fit, minmax(350px, 1fr))",
+            gap: isMobile ? "30px" : "40px"
           }}>
             {[
               {
@@ -618,7 +759,7 @@ export default function App() {
             ].map((testimonial, index) => (
               <div key={index} style={{
                 background: "linear-gradient(135deg, rgba(255, 255, 255, 0.05), rgba(255, 255, 255, 0.02))",
-                padding: "40px",
+                padding: isMobile ? "30px 25px" : "40px",
                 borderRadius: "20px",
                 border: "1px solid rgba(255, 255, 255, 0.1)",
                 backdropFilter: "blur(20px)",
@@ -633,7 +774,7 @@ export default function App() {
                 e.target.style.transform = "translateY(0)";
               }}>
                 <p style={{
-                  fontSize: "18px",
+                  fontSize: isMobile ? "16px" : "18px",
                   color: "rgba(255, 255, 255, 0.9)",
                   marginBottom: "24px",
                   lineHeight: "1.6",
@@ -665,7 +806,7 @@ export default function App() {
 
       {/* Contact */}
       <section id="contact" style={{
-        padding: "120px 40px",
+        padding: isMobile ? "60px 20px" : isTablet ? "80px 30px" : "120px 40px",
         backgroundColor: "#111111",
         borderTop: "1px solid rgba(255, 255, 255, 0.1)"
       }}>
@@ -675,7 +816,7 @@ export default function App() {
           textAlign: "center"
         }}>
           <h2 style={{
-            fontSize: "48px",
+            fontSize: isMobile ? "32px" : isTablet ? "40px" : "48px",
             fontWeight: "700",
             marginBottom: "24px",
             color: "#ffffff"
@@ -683,9 +824,9 @@ export default function App() {
             Get in Touch
           </h2>
           <p style={{
-            fontSize: "18px",
+            fontSize: isMobile ? "16px" : "18px",
             color: "rgba(255, 255, 255, 0.7)",
-            marginBottom: "60px"
+            marginBottom: isMobile ? "40px" : "60px"
           }}>
             Ready to experience the future of eyewear? Let's create something extraordinary together.
           </p>
@@ -696,7 +837,7 @@ export default function App() {
           }}>
             <div style={{
               display: "grid",
-              gridTemplateColumns: "1fr 1fr",
+              gridTemplateColumns: isMobile ? "1fr" : "1fr 1fr",
               gap: "24px"
             }}>
               <input 
@@ -746,7 +887,7 @@ export default function App() {
             </div>
             <textarea 
               placeholder="Tell us about your vision..."
-              rows="6"
+              rows={isMobile ? "4" : "6"}
               style={{
                 padding: "16px 20px",
                 background: "rgba(255, 255, 255, 0.05)",
@@ -797,7 +938,7 @@ export default function App() {
       <footer style={{
         backgroundColor: "#0a0a0a",
         borderTop: "1px solid rgba(255, 255, 255, 0.1)",
-        padding: "60px 40px 30px"
+        padding: isMobile ? "40px 20px 20px" : "60px 40px 30px"
       }}>
         <div style={{
           maxWidth: "1400px",
@@ -805,13 +946,13 @@ export default function App() {
         }}>
           <div style={{
             display: "grid",
-            gridTemplateColumns: "repeat(auto-fit, minmax(250px, 1fr))",
-            gap: "40px",
-            marginBottom: "40px"
+            gridTemplateColumns: isMobile ? "1fr" : isTablet ? "repeat(2, 1fr)" : "repeat(auto-fit, minmax(250px, 1fr))",
+            gap: isMobile ? "30px" : "40px",
+            marginBottom: isMobile ? "30px" : "40px"
           }}>
             <div>
               <h3 style={{
-                fontSize: "24px",
+                fontSize: isMobile ? "20px" : "24px",
                 fontWeight: "700",
                 background: "linear-gradient(135deg, #00f5ff, #0099ff)",
                 backgroundClip: "text",
@@ -823,7 +964,8 @@ export default function App() {
               </h3>
               <p style={{
                 color: "rgba(255, 255, 255, 0.7)",
-                lineHeight: "1.6"
+                lineHeight: "1.6",
+                fontSize: isMobile ? "14px" : "16px"
               }}>
                 Redefining eyewear through innovation, craftsmanship, and uncompromising quality.
               </p>
@@ -874,7 +1016,8 @@ export default function App() {
               </h4>
               <div style={{
                 display: "flex",
-                gap: "16px"
+                gap: "16px",
+                justifyContent: isMobile ? "center" : "flex-start"
               }}>
                 {["📧", "📱", "🌐", "📍"].map((icon, index) => (
                   <div key={index} style={{
@@ -910,7 +1053,7 @@ export default function App() {
           }}>
             <p style={{
               color: "rgba(255, 255, 255, 0.5)",
-              fontSize: "14px"
+              fontSize: isMobile ? "12px" : "14px"
             }}>
               © 2025 John Jacobs Eyewear. All rights reserved. | Crafted with precision and passion.
             </p>
